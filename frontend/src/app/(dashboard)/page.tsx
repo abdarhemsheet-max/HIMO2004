@@ -243,8 +243,8 @@ export default function HomePage() {
               <p className="py-6 text-center text-xs text-slate-600">لا مشاريع نشطة حالياً</p>
             )}
             {(s?.projects ?? []).slice(0, 4).map((p) => {
-              const total = p.tasks.length;
-              const done = p.tasks.filter((t) => t.isCompleted).length;
+              const total = p.tasks?.length ?? 0;
+              const done = (p.tasks ?? []).filter((t) => t.isCompleted).length;
               return (
                 <div key={p.id}>
                   <div className="mb-1 flex items-center justify-between text-xs">

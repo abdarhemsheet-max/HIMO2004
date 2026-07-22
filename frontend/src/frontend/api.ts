@@ -125,7 +125,7 @@ async function handleSummary() {
     supabase.from('daily_tasks').select('*').eq('is_active', true),
     supabase.from('habits').select('*').eq('is_active', true),
     supabase.from('weekly_focus').select('*').eq('week_start', today).maybeSingle(),
-    supabase.from('projects').select('*').eq('status', 'active'),
+    supabase.from('projects').select('*, tasks:project_tasks(*)').eq('status', 'active'),
     supabase.from('hosoon_days').select('*').eq('date', today).maybeSingle(),
     supabase.from('learning_items').select('*').eq('status', 'in_progress').order('created_at', { ascending: false }).limit(3),
   ]);
