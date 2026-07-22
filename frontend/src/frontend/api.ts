@@ -11,10 +11,15 @@ export async function getDocDownloadUrl(filePath: string): Promise<string | null
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filePath }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`[b2-download] ${res.status}: ${body}`);
+      return null;
+    }
     const data = await res.json();
     return data.downloadUrl ?? null;
-  } catch {
+  } catch (e) {
+    console.error('[b2-download] fetch error:', e);
     return null;
   }
 }
@@ -111,7 +116,7 @@ async function toggleLog(b: any) {
 async function handleSummary() {
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
-  const [wal, mtxn, ptxn, dbt, sub, tsk, hab, foc, proj, hos, lrn] = await Promise.all([
+  const results = await Promise.allSettled([
     supabase.from('wallets').select('*'),
     supabase.from('transactions').select('*').eq('status', 'completed').gte('date', monthStart.toISOString()),
     supabase.from('transactions').select('*').eq('status', 'pending'),
@@ -124,6 +129,9 @@ async function handleSummary() {
     supabase.from('hosoon_days').select('*').eq('date', today).maybeSingle(),
     supabase.from('learning_items').select('*').eq('status', 'in_progress').order('created_at', { ascending: false }).limit(3),
   ]);
+  const errors = results.filter(r => r.status === 'rejected').map(r => (r as PromiseRejectedResult).reason);
+  if (errors.length > 0) console.error('[Summary] Supabase queries rejected:', errors);
+  const [wal, mtxn, ptxn, dbt, sub, tsk, hab, foc, proj, hos, lrn] = results.map(r => r.status === 'fulfilled' ? r.value : { data: null, error: null });
   const [tl, hl] = await Promise.all([
     supabase.from('task_logs').select('task_id, date'),
     supabase.from('habit_logs').select('habit_id, date'),
@@ -477,6 +485,13 @@ async function route(m: string, p: string, b: unknown): Promise<unknown> {
   }
 }
 
+function errorMessage(e: unknown): string {
+  if (!navigator.onLine) return 'أنت غير متصل بالإنترنت. تحقق من اتصالك.';
+  if (e instanceof TypeError && e.message === 'Failed to fetch') return 'تعذر الوصول إلى الخادم. قد يكون CORS أو الخادم متوقفاً.';
+  if (e instanceof Error) return e.message;
+  return 'خطأ غير متوقع';
+}
+
 export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Promise<T | null> {
   const m = opts.method ?? 'GET';
   try {
@@ -486,7 +501,9 @@ export async function api<T = unknown>(path: string, opts: ApiOptions = {}): Pro
     if (opts.ok) notifyFn(opts.ok, 'success');
     return data as T;
   } catch (e: unknown) {
-    notifyFn(e instanceof Error ? e.message : 'خطأ في الاتصال', 'error');
+    console.error(`[API Error] ${m} ${path}:`, e);
+    const msg = errorMessage(e);
+    notifyFn(msg, 'error');
     return null;
   }
 }
