@@ -1,10 +1,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-const B2_KEY_ID = Deno.env.get('B2_KEY_ID')!
-const B2_KEY_SECRET = Deno.env.get('B2_KEY_SECRET')!
-const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!
-const B2_BUCKET_NAME = Deno.env.get('B2_BUCKET_NAME')!
-// DB insert handled by client-side api.ts
+const B2_KEY_ID = Deno.env.get('B2_KEY_ID')
+const B2_KEY_SECRET = Deno.env.get('B2_KEY_SECRET')
+const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')
+
+if (!B2_KEY_ID || !B2_KEY_SECRET || !B2_BUCKET_ID) {
+  throw new Error('Missing required B2 environment variables')
+}
 
 async function getAuthToken() {
   const basic = btoa(`${B2_KEY_ID}:${B2_KEY_SECRET}`)
@@ -49,7 +51,20 @@ serve(async (req) => {
     }
 
     const auth = await getAuthToken()
+    if (!auth.apiUrl || !auth.authorizationToken) {
+      return new Response(JSON.stringify({ error: auth.message || 'B2 authentication failed' }), {
+        status: 502,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      })
+    }
+
     const uploadInfo = await getUploadUrl(auth.apiUrl, auth.authorizationToken)
+    if (!uploadInfo.uploadUrl || !uploadInfo.authorizationToken) {
+      return new Response(JSON.stringify({ error: 'B2 upload URL generation failed' }), {
+        status: 502,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      })
+    }
 
     const fileBuffer = await file.arrayBuffer()
     const sha1 = await crypto.subtle.digest('SHA-1', fileBuffer).then(b => {
@@ -69,9 +84,23 @@ serve(async (req) => {
       body: fileBuffer,
     })
 
-    const uploadResult = await uploadRes.json()
+    if (!uploadRes.ok) {
+      const errBody = await uploadRes.text()
+      return new Response(JSON.stringify({ error: `B2 upload failed: ${errBody}` }), {
+        status: 502,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      })
+    }
 
-        return new Response(JSON.stringify({ upload: uploadResult }), {
+    const uploadResult = await uploadRes.json()
+    if (!uploadResult.fileName) {
+      return new Response(JSON.stringify({ error: 'B2 upload succeeded but no fileName returned' }), {
+        status: 502,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      })
+    }
+
+    return new Response(JSON.stringify({ upload: uploadResult }), {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json' },
     })

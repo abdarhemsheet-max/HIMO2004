@@ -2,18 +2,18 @@
 
 import { supabase } from './supabaseClient';
 
-const SUPABASE_URL = 'https://yruoooslxppvsoqdbgxc.supabase.co';
+import { supabaseUrl } from './supabaseClient';
 
 export async function getDocDownloadUrl(filePath: string): Promise<string | null> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/b2-download`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/b2-download`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filePath }),
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.downloadUrl || null;
+    return data.downloadUrl ?? null;
   } catch {
     return null;
   }
@@ -64,7 +64,12 @@ const tableMap: Record<string, string> = {
 };
 
 // ========== CRUD ==========
-const crudList = async (t: string) => fromDb((await supabase.from(t).select('*')).data);
+const crudList = async (t: string) => {
+  const q = t === 'learning_items'
+    ? supabase.from(t).select('*, lessons:learning_lessons(*)').order('created_at', { ascending: false })
+    : supabase.from(t).select('*');
+  return fromDb((await q).data);
+};
 const crudCreate = async (t: string, b: unknown) =>
   fromDb((await supabase.from(t).insert(toDb(b)).select()).data?.[0] ?? null);
 const crudUpdate = async (t: string, id: string, b: unknown) =>
@@ -93,7 +98,10 @@ async function toggleLog(b: any) {
   const table = b.kind === 'habit' ? 'habit_logs' : 'task_logs';
   const idField = b.kind === 'habit' ? 'habit_id' : 'task_id';
   if (b.done) {
-    await supabase.from(table).upsert({ [idField]: b.id, date: b.date }, { onConflict: `${idField},date` });
+    const { data: existing } = await supabase.from(table).select('*').eq(idField, b.id).eq('date', b.date).maybeSingle();
+    if (!existing) {
+      await supabase.from(table).insert({ [idField]: b.id, date: b.date });
+    }
   } else {
     await supabase.from(table).delete().eq(idField, b.id).eq('date', b.date);
   }
@@ -154,7 +162,7 @@ async function documents(m: string, s: string[], b: unknown) {
       fd.append('file', file);
       fd.append('name', String(f.get('name') || file.name || 'ملف'));
       fd.append('category', String(f.get('category') || 'general'));
-      const efRes = await fetch(`${SUPABASE_URL}/functions/v1/b2-upload`, {
+      const efRes = await fetch(`${supabaseUrl}/functions/v1/b2-upload`, {
         method: 'POST',
         body: fd,
       });
@@ -242,17 +250,19 @@ async function transactions(m: string, s: string[], b: any) {
   if (m === 'POST') {
     const db = toDb(b);
     const walletId = db.wallet_id as string;
+    const amount = Number(db.amount);
+    if (isNaN(amount)) throw new Error('قيمة المبلغ غير صالحة');
     if (walletId) {
       const { data: w } = await supabase.from('wallets').select('*').eq('id', walletId).single();
       if (!w) throw new Error('المحفظة غير موجودة');
-      if (db.status === 'completed' && db.type === 'expense' && w.balance < (db.amount as number))
+      if (db.status === 'completed' && db.type === 'expense' && w.balance < amount)
         throw new Error(`رصيد «${w.name}» غير كافٍ`);
     }
-    const { data, error } = await supabase.from('transactions').insert(db).select().single();
+    const { data, error } = await supabase.from('transactions').insert({ ...db, amount }).select().single();
     if (error) throw new Error(error.message);
     if (db.status === 'completed' && walletId) {
       const { data: w } = await supabase.from('wallets').select('*').eq('id', walletId).single();
-      if (w) await supabase.from('wallets').update({ balance: w.balance + (db.type === 'income' ? (db.amount as number) : -(db.amount as number)) }).eq('id', walletId);
+      if (w) await supabase.from('wallets').update({ balance: w.balance + (db.type === 'income' ? amount : -amount) }).eq('id', walletId);
     }
     return fromDb(data);
   }
@@ -263,8 +273,11 @@ async function transactions(m: string, s: string[], b: any) {
     const wId = b.walletId || t.wallet_id;
     const { data: w } = await supabase.from('wallets').select('*').eq('id', wId).single();
     if (!w) throw new Error('المحفظة غير موجودة');
+    const change = t.type === 'income' ? Number(t.amount) : -Number(t.amount);
+    if (isNaN(change)) throw new Error('قيمة المبلغ غير صالحة');
+    if (change < 0 && w.balance < Math.abs(change)) throw new Error(`رصيد «${w.name}» غير كافٍ`);
     const { data } = await supabase.from('transactions').update({ status: 'completed', wallet_id: wId }).eq('id', s[0]).select().single();
-    await supabase.from('wallets').update({ balance: w.balance + t.amount }).eq('id', wId);
+    await supabase.from('wallets').update({ balance: w.balance + change }).eq('id', wId);
     return fromDb(data);
   }
   if (s[0] && m === 'DELETE') {
@@ -290,6 +303,7 @@ async function debtsSettle(id: string, b: any) {
   const remaining = debt.amount - debt.paid_amount;
   if (remaining <= 0) throw new Error('لا يوجد مبلغ متبقٍ');
   const pay = b.amount === undefined || b.amount === '' ? remaining : Number(b.amount);
+  if (isNaN(pay) || pay <= 0) throw new Error('قيمة المبلغ غير صالحة');
   if (pay > remaining + 1e-9) throw new Error(`المبلغ يتجاوز المتبقي (${remaining})`);
   const { data: w } = await supabase.from('wallets').select('*').eq('id', b.walletId).single();
   if (!w) throw new Error('المحفظة غير موجودة');
@@ -306,11 +320,11 @@ async function subPay(id: string, b: any) {
   const { data: sub } = await supabase.from('subscriptions').select('*').eq('id', id).single();
   if (!sub || !sub.is_active) throw new Error('الاشتراك غير صالح');
   const pay = b.amount === undefined || b.amount === '' ? sub.amount : Number(b.amount);
-  if (pay <= 0) throw new Error('قيمة غير صالحة');
+  if (isNaN(pay) || pay <= 0) throw new Error('قيمة غير صالحة');
   const { data: w } = await supabase.from('wallets').select('*').eq('id', b.walletId).single();
-  if (!w || w.balance < pay) throw new Error('رصيد غير كافٍ');
+  if (!w || (w.balance ?? 0) < pay) throw new Error('رصيد غير كافٍ');
   await supabase.from('transactions').insert({ type: 'expense', status: 'completed', amount: pay, category: 'اشتراكات', description: `دفع ${sub.name}`, wallet_id: w.id });
-  await supabase.from('wallets').update({ balance: w.balance - pay }).eq('id', w.id);
+  await supabase.from('wallets').update({ balance: (w.balance ?? 0) - pay }).eq('id', w.id);
   const d = new Date(sub.next_renewal); sub.billing_cycle === 'monthly' ? d.setMonth(d.getMonth() + 1) : d.setFullYear(d.getFullYear() + 1);
   return fromDb((await supabase.from('subscriptions').update({ next_renewal: d.toISOString(), amount: pay, default_wallet_id: w.id }).eq('id', id).select().single()).data);
 }
@@ -330,6 +344,9 @@ async function reorder(b: any) {
 }
 
 async function lessons(m: string, s: string[], b: any) {
+  if (m === 'GET' && s[0]) {
+    return fromDb((await supabase.from('learning_lessons').select('*').eq('item_id', s[0]).order('sort_order', { ascending: true })).data);
+  }
   if (m === 'POST') {
     const titles = (b.titles || []).map((t: any) => String(t).trim()).filter(Boolean);
     if (!titles.length) throw new Error('أضف درساً واحداً على الأقل');

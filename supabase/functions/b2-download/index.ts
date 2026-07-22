@@ -1,9 +1,13 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-const B2_KEY_ID = Deno.env.get('B2_KEY_ID')!
-const B2_KEY_SECRET = Deno.env.get('B2_KEY_SECRET')!
-const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!
-const B2_BUCKET_NAME = Deno.env.get('B2_BUCKET_NAME')!
+const B2_KEY_ID = Deno.env.get('B2_KEY_ID')
+const B2_KEY_SECRET = Deno.env.get('B2_KEY_SECRET')
+const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')
+const B2_BUCKET_NAME = Deno.env.get('B2_BUCKET_NAME')
+
+if (!B2_KEY_ID || !B2_KEY_SECRET || !B2_BUCKET_ID || !B2_BUCKET_NAME) {
+  throw new Error('Missing required B2 environment variables')
+}
 
 async function getAuthToken() {
   const basic = btoa(`${B2_KEY_ID}:${B2_KEY_SECRET}`)
@@ -50,12 +54,24 @@ serve(async (req) => {
     }
 
     const auth = await getAuthToken()
+    if (!auth.apiUrl || !auth.authorizationToken || !auth.downloadUrl) {
+      return new Response(JSON.stringify({ error: auth.message || 'B2 authentication failed' }), {
+        status: 502,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      })
+    }
+
     const dlAuth = await getDownloadAuth(auth.apiUrl, auth.authorizationToken, filePath)
+    if (!dlAuth.authorizationToken) {
+      return new Response(JSON.stringify({ error: 'B2 download authorization failed' }), {
+        status: 502,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      })
+    }
 
-    const token = dlAuth.authorizationToken || ''
-    const downloadUrl = `${auth.downloadUrl}/file/${B2_BUCKET_NAME}/${filePath}?Authorization=${token}`
+    const downloadUrl = `${auth.downloadUrl}/file/${B2_BUCKET_NAME}/${filePath}?Authorization=${dlAuth.authorizationToken}`
 
-    return new Response(JSON.stringify({ downloadUrl, dlAuth }), {
+    return new Response(JSON.stringify({ downloadUrl }), {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
