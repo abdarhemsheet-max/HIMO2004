@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+build/
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+__pycache__/
+*.pyc
+.claude/
+frontend/node_modules/
+frontend/.env
+gemini-code-*.html

@@ -1,0 +1,8 @@
+{
+  "bucketName": "hayati-documents",
+  "bucketId": "93b5f0beae1182ba96f90211",
+  "endpoint": "https://s3.ca-east-006.backblazeb2.com",
+  "keyId": "006350ee12a69210000000001",
+  "keySecret": "K006YBMMZnF/CfFPL8sj7cmjjfIxaoY",
+  "publicUrlBase": "https://f005.backblazeb2.com/file/hayati-documents"
+}
