@@ -2,10 +2,10 @@
   "name": "hayati-os",
   "version": "2.0.0",
   "private": true,
-  "description": "نظام حياتي — نظام شخصي متكامل لإدارة الحياة (محلي 100%) لعبدالرحيم أحمد شيتة",
+  "description": "نظام حياتي — نظام شخصي متكامل لإدارة الحياة لعبدالرحيم أحمد شيتة",
   "scripts": {
     "dev": "next dev -p 4400",
-    "build": "next build",
+    "build": "next build && node scripts/postbuild.js",
     "start": "next start -p 4400",
     "lint": "next lint",
     "postinstall": "prisma generate",
