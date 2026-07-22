@@ -4,7 +4,6 @@ const nextConfig = {
   images: {
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
-  // بيانات الـ API حية دائماً — منع أي تخزين متصفح قد يعرض بيانات قديمة
   async headers() {
     return [
       {

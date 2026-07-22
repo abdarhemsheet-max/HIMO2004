@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabase } from '@/backend/supabase';
-import { uploadFile } from '@/backend/backblaze';
+import { uploadFile } from '@/backend/lib/b2Storage';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -76,8 +76,7 @@ export async function POST(req: NextRequest) {
         mime_type: mimeType,
         size: file.size,
         folder_id: folderId,
-        b2_file_id: b2.fileId,
-        b2_bucket_id: b2.bucketId,
+        b2_file_id: b2.key,
       })
       .select()
       .single();

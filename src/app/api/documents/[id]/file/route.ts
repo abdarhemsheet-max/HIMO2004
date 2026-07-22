@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/backend/supabase';
-import { downloadFile } from '@/backend/backblaze';
+import { downloadFile } from '@/backend/lib/b2Storage';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
