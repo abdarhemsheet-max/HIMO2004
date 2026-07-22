@@ -12,3 +12,4 @@ next-env.d.ts
 # قاعدة البيانات المحلية والملفات المرفوعة
 prisma/dev.db*
 uploads/
+gemini-code-*.html

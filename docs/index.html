@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام حياتي — Hayati OS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: #0a0a0f;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 640px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      margin-bottom: 2rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      margin-bottom: 2rem;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .feature {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 1.25rem 1rem;
+    }
+    .feature .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .feature .name { font-weight: 700; font-size: 0.85rem; }
+    .feature .desc { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.5rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .links a.primary {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      color: #fff;
+      border: none;
+    }
+    .links a.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(56,189,248,0.25); }
+    .links a.secondary {
+      background: rgba(255,255,255,0.05);
+      color: #e2e8f0;
+    }
+    .links a.secondary:hover { background: rgba(255,255,255,0.1); }
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>نظام حياتي</h1>
+    <p class="subtitle">Hayati OS — نظام شخصي متكامل لإدارة الحياة</p>
+    <span class="badge">v2.0.0 · محلي 100%</span>
+
+    <div class="features">
+      <div class="feature">
+        <div class="icon">💰</div>
+        <div class="name">المالية</div>
+        <div class="desc">محافظ، ديون، اشتراكات، أهداف</div>
+      </div>
+      <div class="feature">
+        <div class="icon">✅</div>
+        <div class="name">المهام والعادات</div>
+        <div class="desc">مهام يومية، عادات، تركيز أسبوعي</div>
+      </div>
+      <div class="feature">
+        <div class="icon">📂</div>
+        <div class="name">المشاريع</div>
+        <div class="desc">مشاريع محدودة ومستمرة</div>
+      </div>
+      <div class="feature">
+        <div class="icon">📄</div>
+        <div class="name">المستندات</div>
+        <div class="desc">أرشيف PDF مع Backblaze + Supabase</div>
+      </div>
+      <div class="feature">
+        <div class="icon">📖</div>
+        <div class="name">القرآن</div>
+        <div class="desc">حصون، شنقيطية، SRS، مصحف</div>
+      </div>
+      <div class="feature">
+        <div class="icon">📚</div>
+        <div class="name">التعلم</div>
+        <div class="desc">كورسات وكتب مع دروس</div>
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="https://github.com/abdarhemsheet-max/hayati-os" class="primary">
+        GitHub
+      </a>
+      <a href="https://github.com/abdarhemsheet-max/hayati-os/blob/main/README.md" class="secondary">
+        README
+      </a>
+    </div>
+    <p class="footer">
+      by عبدالرحيم أحمد شيتة
+    </p>
+  </div>
+</body>
+</html>
