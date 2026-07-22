@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "next dev -p 4400",
     "build": "next build",
-    "start": "next start -p 4400",
+    "start": "next start -p 4400 -H 0.0.0.0",
+    "start:pm2": "pm2 start scripts/server.mjs --name hayati-os --interpreter node",
+    "pm2:save": "pm2 save",
+    "pm2:logs": "pm2 logs hayati-os",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
