@@ -3,8 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   images: { unoptimized: true },
   output: 'export',
-  basePath: '/hayati-os',
-  assetPrefix: '/hayati-os',
+  basePath: '/HIMO2004',
+  assetPrefix: '/HIMO2004',
   trailingSlash: true,
 };
 

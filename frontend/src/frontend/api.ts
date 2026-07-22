@@ -2,6 +2,23 @@
 
 import { supabase } from './supabaseClient';
 
+const SUPABASE_URL = 'https://yruoooslxppvsoqdbgxc.supabase.co';
+
+export async function getDocDownloadUrl(filePath: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/b2-download`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.downloadUrl || null;
+  } catch {
+    return null;
+  }
+}
+
 export type ToastType = 'success' | 'error';
 type NotifyFn = (message: string, type: ToastType) => void;
 let notifyFn: NotifyFn = () => {};
@@ -129,11 +146,30 @@ async function documents(m: string, s: string[], b: unknown) {
   if (m === 'GET') return fromDb((await supabase.from('documents').select('*').order('created_at', { ascending: false })).data);
   if (m === 'POST') {
     const f = b as FormData;
+    const file = f.get('file') as File | null;
+    let filePath = '';
+
+    if (file && file.size > 0) {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('name', String(f.get('name') || file.name || 'ملف'));
+      fd.append('category', String(f.get('category') || 'general'));
+      const efRes = await fetch(`${SUPABASE_URL}/functions/v1/b2-upload`, {
+        method: 'POST',
+        body: fd,
+      });
+      if (!efRes.ok) throw new Error('فشل رفع الملف');
+      const efData = await efRes.json();
+      if (efData.error) throw new Error(efData.error);
+      filePath = efData.upload?.fileName || efData.document?.file_path || '';
+    }
+
     const { data, error } = await supabase.from('documents').insert({
       name: String(f.get('name') || '').slice(0, 200) || 'ملف',
-      file_name: (f.get('file') as File)?.name || 'ملف',
-      mime_type: (f.get('file') as File)?.type || 'application/octet-stream',
-      size: (f.get('file') as File)?.size || 0,
+      file_name: file?.name || 'ملف',
+      file_path: filePath,
+      mime_type: file?.type || 'application/octet-stream',
+      size: file?.size || 0,
       folder_id: (f.get('folderId') as string) || null,
     }).select().single();
     if (error) throw new Error(error.message);

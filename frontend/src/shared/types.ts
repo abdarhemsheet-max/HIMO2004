@@ -197,6 +197,7 @@ export interface Document {
   mimeType: string;
   size: number;
   folderId: string | null;
+  filePath?: string;
   createdAt: string;
 }
 

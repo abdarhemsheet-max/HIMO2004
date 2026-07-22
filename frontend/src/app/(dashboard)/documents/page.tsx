@@ -14,7 +14,7 @@ import {
   Download,
   X,
 } from 'lucide-react';
-import { api, getCached, notify } from '@/frontend/api';
+import { api, getCached, getDocDownloadUrl, notify } from '@/frontend/api';
 import { fmtDateShort, cn } from '@/shared/utils';
 import type { DocFolder, Document } from '@/shared/types';
 import GlassCard from '@/frontend/components/ui/GlassCard';
@@ -48,6 +48,7 @@ export default function DocumentsPage() {
   const [activeFolder, setActiveFolder] = useState<string | 'all'>('all');
   const [modal, setModal] = useState<null | 'folder'>(null);
   const [viewer, setViewer] = useState<Document | null>(null);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [staged, setStaged] = useState<StagedFile[] | null>(null); // ملفات بانتظار تأكيد الاسم/المجلد
   const fileInput = useRef<HTMLInputElement>(null);
@@ -131,7 +132,7 @@ export default function DocumentsPage() {
     if (!ok) return;
     const res = await api(`/api/documents/${d.id}`, { method: 'DELETE' });
     if (res) {
-      if (viewer?.id === d.id) setViewer(null);
+      if (viewer?.id === d.id) { setViewer(null); setViewerUrl(null); }
       load();
     }
   };
@@ -263,13 +264,13 @@ export default function DocumentsPage() {
                     </p>
                     <div className="mt-2.5 flex items-center gap-2">
                       {canPreview(d) ? (
-                        <button className="btn-ghost !px-3 !py-1.5 text-[11px]" onClick={() => setViewer(d)}>
+                        <button className="btn-ghost !px-3 !py-1.5 text-[11px]" onClick={async () => { setViewer(d); const url = d.filePath ? await getDocDownloadUrl(d.filePath) : null; setViewerUrl(url); }}>
                           <Eye size={12} /> {isPdf(d) ? 'قراءة PDF' : 'عرض'}
                         </button>
                       ) : (
-                        <a href={`/api/documents/${d.id}/file`} download={d.name} className="btn-ghost !px-3 !py-1.5 text-[11px]">
+                        <button className="btn-ghost !px-3 !py-1.5 text-[11px]" onClick={async () => { const url = d.filePath ? await getDocDownloadUrl(d.filePath) : null; if (url) window.open(url, '_blank'); }}>
                           <Download size={12} /> تنزيل
-                        </a>
+                        </button>
                       )}
                       <button
                         className="text-slate-700 opacity-0 transition group-hover:opacity-100 hover:!text-rose-400"
@@ -294,10 +295,16 @@ export default function DocumentsPage() {
               {isPdf(viewer) ? '📄' : '🖼'} {viewer.name}
             </p>
             <div className="flex items-center gap-2">
-              <a href={`/api/documents/${viewer.id}/file`} download={viewer.name} className="btn-ghost !px-3 !py-1.5 text-[11px]">
-                <Download size={12} /> تنزيل
-              </a>
-              <button className="btn-ghost !p-2" onClick={() => setViewer(null)} aria-label="إغلاق">
+              {viewerUrl ? (
+                <a href={viewerUrl} download className="btn-ghost !px-3 !py-1.5 text-[11px]">
+                  <Download size={12} /> تنزيل
+                </a>
+              ) : (
+                <span className="btn-ghost !px-3 !py-1.5 text-[11px] opacity-50">
+                  <Download size={12} /> تنزيل
+                </span>
+              )}
+              <button className="btn-ghost !p-2" onClick={() => { setViewer(null); setViewerUrl(null); }} aria-label="إغلاق">
                 <X size={16} />
               </button>
             </div>
@@ -305,14 +312,14 @@ export default function DocumentsPage() {
           <div className="glass flex-1 overflow-hidden !rounded-xl bg-white/95">
             {isPdf(viewer) ? (
               <iframe
-                src={`/api/documents/${viewer.id}/file#toolbar=1`}
+                src={viewerUrl || ''}
                 title={viewer.name}
                 className="h-full w-full border-0"
               />
             ) : (
               <div className="flex h-full items-center justify-center overflow-auto p-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/documents/${viewer.id}/file`} alt={viewer.name} className="max-h-full max-w-full rounded-lg object-contain" />
+                <img src={viewerUrl || ''} alt={viewer.name} className="max-h-full max-w-full rounded-lg object-contain" />
               </div>
             )}
           </div>
