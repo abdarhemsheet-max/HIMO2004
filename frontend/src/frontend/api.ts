@@ -72,6 +72,8 @@ const tableMap: Record<string, string> = {
 const crudList = async (t: string) => {
   const q = t === 'learning_items'
     ? supabase.from(t).select('*, lessons:learning_lessons(*)').order('created_at', { ascending: false })
+    : t === 'projects'
+    ? supabase.from(t).select('*, tasks:project_tasks(*)')
     : supabase.from(t).select('*');
   return fromDb((await q).data);
 };

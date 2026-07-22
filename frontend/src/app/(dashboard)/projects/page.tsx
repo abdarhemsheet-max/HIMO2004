@@ -82,15 +82,15 @@ export default function ProjectsPage() {
     if (!open) return;
     const all = await api<ProjectTask[]>('/api/crud/projectTasks');
     if (all) {
-      const visible = new Set(open.tasks.map((t) => t.id));
+      const visible = new Set((open.tasks ?? []).map((t) => t.id));
       setArchived(all.filter((t) => t.projectId === open.id && !visible.has(t.id)));
     }
   };
 
   /** إجمالي المهام يشمل المؤرشفة (_count) — المهام غير المنجزة كلها ظاهرة دائماً */
   const countsOf = (p: Project) => {
-    const total = p._count?.tasks ?? p.tasks.length;
-    const undone = p.tasks.filter((t) => !t.isCompleted).length;
+    const total = p._count?.tasks ?? p.tasks?.length ?? 0;
+    const undone = (p.tasks ?? []).filter((t) => !t.isCompleted).length;
     return { total, done: total - undone };
   };
 
@@ -404,7 +404,7 @@ export default function ProjectsPage() {
                 className="mb-3"
               />
               <div className="flex max-h-60 flex-col gap-1 overflow-y-auto">
-                {open.tasks.map((t) => (
+                {(open.tasks ?? []).map((t) => (
                   <div key={t.id} className="group flex items-center gap-2 rounded-lg px-1 py-0.5 hover:bg-white/[0.04]">
                     <button
                       onClick={() => toggleTask(t.id, !t.isCompleted)}
@@ -468,9 +468,9 @@ export default function ProjectsPage() {
 
               {/* أرشيف المهام: المنجزة تختفي من العرض بعد 3 أيام وتبقى محفوظة */}
               <div className="mt-3 border-t border-white/[0.06] pt-2">
-                {countsOf(open).total > open.tasks.length && archived === null && (
+                {countsOf(open).total > (open.tasks?.length ?? 0) && archived === null && (
                   <button className="text-[11px] font-bold text-slate-500 hover:text-emerald-300" onClick={loadArchived}>
-                    🗄 عرض الأرشيف ({countsOf(open).total - open.tasks.length} مهمة منجزة قديمة)
+                    🗄 عرض الأرشيف ({countsOf(open).total - (open.tasks?.length ?? 0)} مهمة منجزة قديمة)
                   </button>
                 )}
                 {archived !== null && archived.length > 0 && (
