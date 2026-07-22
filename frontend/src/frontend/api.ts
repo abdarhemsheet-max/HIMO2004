@@ -413,7 +413,7 @@ async function reportGenerate(b: any) {
 }
 
 async function manualExport(id: string) {
-  throw new Error('تصدير PDF يتطلب تنصيب محلي — استخدم زر الطباعة في المتصفح');
+  throw new Error('تصدير PDF — استخدم زر الطباعة في المتصفح (Ctrl+P)');
 }
 
 async function srsReview(id: string, b: any) {
