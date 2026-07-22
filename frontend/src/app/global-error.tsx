@@ -15,7 +15,7 @@ export default function GlobalError({
             <p style={{ fontSize: 40 }}>😅</p>
             <h2 style={{ fontWeight: 900 }}>حدث خطأ غير متوقع في النظام</h2>
             <p style={{ color: '#94a3b8', fontSize: 14, marginTop: 8 }}>
-              بياناتك سليمة. اضغط إعادة المحاولة أو أعد تشغيل النظام من START.bat
+               حدث خطأ في النظام. اضغط إعادة المحاولة.
             </p>
             <button
               onClick={() => reset()}

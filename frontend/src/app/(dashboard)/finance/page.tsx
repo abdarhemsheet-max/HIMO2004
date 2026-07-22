@@ -321,7 +321,7 @@ export default function FinancePage() {
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-2xl font-black">المالية والثروة</h1>
-            <p className="text-sm text-slate-500">لوحة تحكم شاملة لأموالك — محلية وآمنة</p>
+            <p className="text-sm text-slate-500">لوحة تحكم شاملة لأموالك</p>
           </div>
           <PrivacyToggleButton visible={showBalances} onToggle={togglePrivacy} />
         </div>

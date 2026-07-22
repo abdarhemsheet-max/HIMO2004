@@ -21,7 +21,7 @@ export default function Error({
         </div>
         <h2 className="text-lg font-black">حدث خطأ غير متوقع</h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">
-          لا تقلق — بياناتك سليمة ومحفوظة محلياً. جرّب إعادة المحاولة، وإن تكرر الخطأ أغلق النافذة وشغّل النظام من جديد عبر START.bat.
+           حدث خطأ في الاتصال. تحقق من اتصالك بالإنترنت وجرّب مرة أخرى.
         </p>
         {error?.digest && (
           <p className="mt-2 text-[10px] text-slate-600" dir="ltr">رمز الخطأ: {error.digest}</p>
