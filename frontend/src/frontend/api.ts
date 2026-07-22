@@ -120,11 +120,11 @@ async function handleSummary() {
     supabase.from('task_logs').select('task_id, date'),
     supabase.from('habit_logs').select('habit_id, date'),
   ]);
-  return fromDb({ today, wallets: wal.data, monthTxns: mtxn.data, pendingTxns: ptxn.data,
-    debts: dbt.data, subscriptions: sub.data,
+  return fromDb({ today, wallets: wal.data ?? [], monthTxns: mtxn.data ?? [], pendingTxns: ptxn.data ?? [],
+    debts: dbt.data ?? [], subscriptions: sub.data ?? [],
     tasks: (tsk.data || []).map((t: any) => ({ ...t, logs: (tl.data || []).filter((l: any) => l.task_id === t.id) })),
     habits: (hab.data || []).map((h: any) => ({ ...h, logs: (hl.data || []).filter((l: any) => l.habit_id === h.id) })),
-    focus: foc.data, projects: proj.data, hosoonToday: hos.data, learning: lrn.data });
+    focus: foc.data ?? null, projects: proj.data ?? [], hosoonToday: hos.data ?? null, learning: lrn.data ?? [] });
 }
 
 async function heatmap() {
