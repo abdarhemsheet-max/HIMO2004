@@ -4,8 +4,7 @@ const B2_KEY_ID = Deno.env.get('B2_KEY_ID')!
 const B2_KEY_SECRET = Deno.env.get('B2_KEY_SECRET')!
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!
 const B2_BUCKET_NAME = Deno.env.get('B2_BUCKET_NAME')!
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+// DB insert handled by client-side api.ts
 
 async function getAuthToken() {
   const basic = btoa(`${B2_KEY_ID}:${B2_KEY_SECRET}`)
@@ -41,8 +40,6 @@ serve(async (req) => {
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
-    const name = formData.get('name') as string || file.name
-    const category = formData.get('category') as string || 'general'
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'file is required' }), {
@@ -74,27 +71,7 @@ serve(async (req) => {
 
     const uploadResult = await uploadRes.json()
 
-    // Create document record in Supabase
-    const docResponse = await fetch(`${SUPABASE_URL}/rest/v1/documents`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_SERVICE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation',
-      },
-      body: JSON.stringify({
-        name: name,
-        file_path: uploadResult.fileName,
-        file_size: file.size,
-        mime_type: file.type || 'application/octet-stream',
-        category: category,
-      }),
-    })
-
-    const doc = await docResponse.json()
-
-    return new Response(JSON.stringify({ document: doc, upload: uploadResult }), {
+        return new Response(JSON.stringify({ upload: uploadResult }), {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
