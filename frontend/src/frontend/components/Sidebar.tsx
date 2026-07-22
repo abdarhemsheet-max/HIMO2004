@@ -15,6 +15,7 @@ import {
   Sparkles,
   DatabaseBackup,
   Loader2,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/shared/utils';
 import GlobalTimer from '@/frontend/components/GlobalTimer';
@@ -28,6 +29,7 @@ const NAV = [
   { href: '/documents', label: 'أرشيف المستندات', short: 'المستندات', icon: FolderOpen },
   { href: '/quran', label: 'القرآن الكريم', short: 'القرآن', icon: BookOpen },
   { href: '/learning', label: 'التعلم والقراءة', short: 'التعلم', icon: GraduationCap },
+  { href: '/recovery', label: 'الاستعادة', short: 'الاستعادة', icon: RotateCcw },
 ];
 
 export default function Sidebar() {

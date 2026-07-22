@@ -260,7 +260,22 @@ export interface SrsCard {
   logs?: SrsReviewLog[];
 }
 
-// ===== 7) التعلم والقراءة =====
+// ===== 7) الاستعادة اليومية =====
+export interface RecoverySettings {
+  id: string;
+  startDate: string;
+  createdAt: string;
+}
+
+export interface RecoveryLog {
+  id: string;
+  date: string;
+  status: string;
+  trigger: string | null;
+  createdAt: string;
+}
+
+// ===== 8) التعلم والقراءة =====
 export interface LearningLesson {
   id: string;
   itemId: string;

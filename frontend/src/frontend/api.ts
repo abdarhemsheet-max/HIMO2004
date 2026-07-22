@@ -363,7 +363,12 @@ async function syncItem(itemId: string) {
   await supabase.from('learning_items').update({ total_units: count ?? 0, done_units: done ?? 0 }).eq('id', itemId);
 }
 
-async function recovery(m: string, b: any) {
+async function recovery(m: string, s: string[], b: any) {
+  if (s[0] === 'logs') {
+    if (m === 'GET') return fromDb((await supabase.from('recovery_logs').select('*').order('date', { ascending: false }).limit(365)).data);
+    if (s[1] && m === 'PATCH') return fromDb((await supabase.from('recovery_logs').update(toDb(b)).eq('id', s[1]).select().single()).data);
+    throw new Error('طريقة غير مدعومة');
+  }
   if (m === 'GET') {
     const { data, error } = await supabase.from('recovery_settings').select('*').eq('id', 'singleton').maybeSingle();
     return fromDb(data) || null;
@@ -447,7 +452,7 @@ async function route(m: string, p: string, b: unknown): Promise<unknown> {
     case 'subscriptions': return segs[3] === 'pay' ? subPay(segs[2], b) : (() => { throw new Error('طريقة غير مدعومة'); })();
     case 'projects': return segs[2] === 'reorder' ? reorder(b) : segs[2] === 'tasks' && segs[4] === 'report' ? taskReport(segs[3], b) : (() => { throw new Error('طريقة غير مدعومة'); })();
     case 'learning': return lessons(m, segs.slice(2), b);
-    case 'recovery': return recovery(m, b);
+    case 'recovery': return recovery(m, segs.slice(2), b);
     case 'hosoon': return hosoon(m, b);
     case 'quran': return segs[2] === 'heatmap' ? heatmap() : segs[2] === 'srs' && segs[4] === 'review' ? srsReview(segs[3], b) : (() => { throw new Error('طريقة غير مدعومة'); })();
     case 'reports': return segs[2] === 'generate' ? reportGenerate(b) : segs[2] === 'manual' && segs[4] === 'export' ? manualExport(segs[3]) : (() => { throw new Error('طريقة غير مدعومة'); })();
