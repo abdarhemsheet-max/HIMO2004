@@ -54,7 +54,10 @@ interface Summary {
 export default function HomePage() {
   const [s, setS] = useState<Summary | null>(() => getCached<Summary>('/api/summary'));
   const [loading, setLoading] = useState(true);
+  const [todayLabel, setTodayLabel] = useState('');
   const { showBalances, togglePrivacy } = usePrivacyMode();
+
+  useEffect(() => { setTodayLabel(fmtDate(new Date())); }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,7 +108,7 @@ export default function HomePage() {
           <h1 className="text-2xl font-black">
             أهلاً عبدالرحيم <span className="inline-block">👋</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-500">{fmtDate(new Date())} — كل شيء تحت السيطرة</p>
+          <p className="mt-1 text-sm text-slate-500">{todayLabel || ''}</p>
         </div>
         <PrivacyToggleButton visible={showBalances} onToggle={togglePrivacy} />
       </header>

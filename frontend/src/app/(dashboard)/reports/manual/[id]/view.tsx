@@ -21,16 +21,17 @@ export default function ManualReportEditorPage() {
 
   const [title, setTitle] = useState('');
   const [entityId, setEntityId] = useState('');
-  const [reportDate, setReportDate] = useState(todayStr());
+  const [reportDate, setReportDate] = useState('');
   const [content, setContent] = useState('');
   const [savedId, setSavedId] = useState<string | null>(isNew ? null : params.id);
   const [documentId, setDocumentId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isNew) setReportDate(todayStr());
     api<WorkEntity[]>('/api/crud/entities').then((d) => {
       if (d) setEntities(d);
     });
-  }, []);
+  }, [isNew]);
 
   useEffect(() => {
     if (isNew) return;
