@@ -50,12 +50,14 @@ export default function ProjectsPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [newType, setNewType] = useState<'finite' | 'ongoing'>('finite');
   const [archived, setArchived] = useState<ProjectTask[] | null>(null);
+  const [loading, setLoading] = useState(false);
   const { confirm, ConfirmDialog } = useConfirm();
   const [allTasks, setAllTasks] = useState<ProjectTask[]>(
     () => getCached<ProjectTask[]>('/api/crud/projectTasks') ?? []
   );
 
   const load = useCallback(async () => {
+    setLoading(true);
     const [p, e, t] = await Promise.all([
       api<Project[]>('/api/crud/projects'),
       api<WorkEntity[]>('/api/crud/entities'),
@@ -64,11 +66,14 @@ export default function ProjectsPage() {
     if (p) setProjects(p);
     if (e) setEntities(e);
     if (t) setAllTasks(t);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && projects.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const open = projects.find((p) => p.id === openId) ?? null;
 

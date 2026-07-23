@@ -55,16 +55,21 @@ export default function LearningPage() {
   const [modal, setModal] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {
+    setLoading(true);
     const data = await api<LearningItem[]>('/api/crud/learning');
     if (data) setItems(data);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && items.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const open = items.find((i) => i.id === openId) ?? null;
 

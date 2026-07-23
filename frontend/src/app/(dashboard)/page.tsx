@@ -52,18 +52,22 @@ interface Summary {
 }
 
 export default function HomePage() {
-  // العرض الفوري من الكاش ثم التحديث بصمت — لا شاشة فارغة عند التنقل
   const [s, setS] = useState<Summary | null>(() => getCached<Summary>('/api/summary'));
+  const [loading, setLoading] = useState(false);
   const { showBalances, togglePrivacy } = usePrivacyMode();
 
   const load = useCallback(async () => {
+    setLoading(true);
     const data = await api<Summary>('/api/summary');
     if (data) setS(data);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && !s) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const toggleTask = async (task: DailyTask, done: boolean) => {
     if (!s) return;
@@ -86,7 +90,7 @@ export default function HomePage() {
   const doneTasks = todayTasks.filter((t) => t.logs.some((l) => l.date === s?.today));
 
   const topHabits = (s?.habits ?? [])
-    .map((h) => ({ ...h, streak: calcStreak(new Set(h.logs.map((l) => l.date))) }))
+    .map((h) => ({ ...h, streak: calcStreak(new Set((h.logs || []).map((l) => l.date))) }))
     .sort((a, b) => b.streak - a.streak)
     .slice(0, 4);
 

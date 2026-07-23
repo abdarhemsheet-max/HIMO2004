@@ -57,6 +57,7 @@ const onForm =
 export default function QuranPage() {
   const today = todayStr();
   const [system, setSystem] = useState<System>('hosoon');
+  const [loading, setLoading] = useState(false);
   const { confirm, ConfirmDialog } = useConfirm();
 
   // استرجاع آخر نظام مستخدم
@@ -179,15 +180,19 @@ export default function QuranPage() {
   };
 
   useEffect(() => {
-    loadHosoon();
-    loadShanqiti();
-    loadEntries();
+    (async () => {
+      setLoading(true);
+      await Promise.all([loadHosoon(), loadShanqiti(), loadEntries()]);
+      setLoading(false);
+    })();
   }, [loadHosoon, loadShanqiti, loadEntries]);
 
   const fortsDone = hosoonDay ? FORTS.filter((f) => hosoonDay[f.key]).length : 0;
   const week = lastNDays(7);
   const todaySessions = sessions.filter((s) => s.date === today);
   const oldSessions = sessions.filter((s) => s.date !== today).slice(0, 6);
+
+  if (loading && sessions.length === 0 && entries.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   return (
     <div className="flex flex-col gap-6">

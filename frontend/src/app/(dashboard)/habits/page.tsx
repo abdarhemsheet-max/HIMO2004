@@ -36,9 +36,11 @@ export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>(() => getCached<Habit[]>('/api/crud/habits') ?? []);
   const [focusList, setFocusList] = useState<WeeklyFocus[]>(() => getCached<WeeklyFocus[]>('/api/crud/weeklyFocus') ?? []);
   const [modal, setModal] = useState<null | 'task' | 'habit' | 'focus'>(null);
+  const [loading, setLoading] = useState(false);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {
+    setLoading(true);
     const [t, h, f] = await Promise.all([
       api<DailyTask[]>('/api/crud/dailyTasks'),
       api<Habit[]>('/api/crud/habits'),
@@ -47,11 +49,14 @@ export default function HabitsPage() {
     if (t) setTasks(t);
     if (h) setHabits(h);
     if (f) setFocusList(f);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && tasks.length === 0 && habits.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const focus = focusList.find((f) => f.weekStart === weekStart) ?? null;
   const focusDone: string[] = focus ? (JSON.parse(focus.doneDates || '[]') as string[]) : [];
@@ -65,7 +70,7 @@ export default function HabitsPage() {
     setTasks((prev) =>
       prev.map((x) =>
         x.id === t.id
-          ? { ...x, logs: done ? [...x.logs, { date: today }] : x.logs.filter((l) => l.date !== today) }
+          ? { ...x, logs: done ? [...(x.logs || []), { date: today }] : (x.logs || []).filter((l) => l.date !== today) }
           : x
       )
     );
@@ -94,7 +99,7 @@ export default function HabitsPage() {
     setHabits((prev) =>
       prev.map((x) =>
         x.id === h.id
-          ? { ...x, logs: done ? [...x.logs, { date: today }] : x.logs.filter((l) => l.date !== today) }
+          ? { ...x, logs: done ? [...(x.logs || []), { date: today }] : (x.logs || []).filter((l) => l.date !== today) }
           : x
       )
     );
@@ -284,7 +289,7 @@ export default function HabitsPage() {
               {habits
                 .filter((h) => h.isActive)
                 .map((h) => {
-                  const dates = new Set(h.logs.map((l) => l.date));
+                  const dates = new Set((h.logs || []).map((l) => l.date));
                   const streak = calcStreak(dates);
                   const doneToday = dates.has(today);
                   return (

@@ -77,7 +77,10 @@ export default function FinancePage() {
   const [assets, setAssets] = useState<Asset[]>(() => getCached<Asset[]>('/api/crud/assets') ?? []);
   const [savings, setSavings] = useState<SavingsGoal[]>(() => getCached<SavingsGoal[]>('/api/crud/savings') ?? []);
 
+  const [loading, setLoading] = useState(false);
+
   const load = useCallback(async () => {
+    setLoading(true);
     const [w, t, d, s, a, g] = await Promise.all([
       api<Wallet[]>('/api/crud/wallets'),
       api<Transaction[]>('/api/transactions'),
@@ -92,11 +95,14 @@ export default function FinancePage() {
     if (s) setSubs(s);
     if (a) setAssets(a);
     if (g) setSavings(g);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && wallets.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   // ===== إحصائيات =====
   const monthKey = todayStr().slice(0, 7);

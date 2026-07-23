@@ -28,18 +28,23 @@ export default function RecoveryPage() {
   const [logs, setLogs] = useState<RecoveryLog[]>(() => getCached('/api/recovery/logs') ?? []);
   const [modal, setModal] = useState<'start' | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<RecoveryLog | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
     const [s, l] = await Promise.all([
       api<RecoverySettings>('/api/recovery'),
       api<RecoveryLog[]>('/api/recovery/logs'),
     ]);
     if (s) setSettings(s);
     if (l) setLogs(l);
+    setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  if (loading && !settings) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const startRecovery = async (f: FormData) => {
     setSaving(true);

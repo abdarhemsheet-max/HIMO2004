@@ -49,23 +49,28 @@ export default function DocumentsPage() {
   const [modal, setModal] = useState<null | 'folder'>(null);
   const [viewer, setViewer] = useState<Document | null>(null);
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [staged, setStaged] = useState<StagedFile[] | null>(null); // ملفات بانتظار تأكيد الاسم/المجلد
+  const [staged, setStaged] = useState<StagedFile[] | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {
+    setLoading(true);
     const [f, d] = await Promise.all([
       api<DocFolder[]>('/api/crud/folders'),
       api<Document[]>('/api/documents'),
     ]);
     if (f) setFolders(f);
     if (d) setDocs(d);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && docs.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const addFolder = async (f: FormData) => {
     const ok = await api('/api/crud/folders', {

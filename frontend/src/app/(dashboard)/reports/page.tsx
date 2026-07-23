@@ -30,9 +30,11 @@ export default function ReportsPage() {
   const [projects, setProjects] = useState<Project[]>(() => getCached<Project[]>('/api/crud/projects') ?? []);
   const [modal, setModal] = useState<null | 'entity' | 'report'>(null);
   const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {
+    setLoading(true);
     const [r, m, e, p] = await Promise.all([
       api<Report[]>('/api/crud/reports'),
       api<ManualReport[]>('/api/crud/manualReports'),
@@ -43,11 +45,14 @@ export default function ReportsPage() {
     if (m) setManualReports(m);
     if (e) setEntities(e);
     if (p) setProjects(p);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  if (loading && reports.length === 0 && manualReports.length === 0) return <p className="py-20 text-center text-sm text-slate-500">جاري جلب البيانات...</p>;
 
   const addEntity = async (f: FormData) => {
     const ok = await api('/api/crud/entities', {

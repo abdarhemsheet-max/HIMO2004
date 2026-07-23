@@ -70,12 +70,27 @@ const tableMap: Record<string, string> = {
 
 // ========== CRUD ==========
 const crudList = async (t: string) => {
-  const q = t === 'learning_items'
-    ? supabase.from(t).select('*, lessons:learning_lessons(*)').order('created_at', { ascending: false })
-    : t === 'projects'
-    ? supabase.from(t).select('*, tasks:project_tasks(*)')
-    : supabase.from(t).select('*');
-  return fromDb((await q).data);
+  let data: unknown;
+  if (t === 'learning_items') {
+    data = (await supabase.from(t).select('*, lessons:learning_lessons(*)').order('created_at', { ascending: false })).data;
+  } else if (t === 'projects') {
+    data = (await supabase.from(t).select('*, tasks:project_tasks(*)')).data;
+  } else if (t === 'habits') {
+    data = (await supabase.from(t).select('*')).data;
+    if (data) {
+      const { data: logs } = await supabase.from('habit_logs').select('habit_id, date');
+      if (logs) data = (data as any[]).map((h: any) => ({ ...h, logs: logs.filter((l: any) => l.habit_id === h.id) }));
+    }
+  } else if (t === 'daily_tasks') {
+    data = (await supabase.from(t).select('*')).data;
+    if (data) {
+      const { data: logs } = await supabase.from('task_logs').select('task_id, date');
+      if (logs) data = (data as any[]).map((t: any) => ({ ...t, logs: logs.filter((l: any) => l.task_id === t.id) }));
+    }
+  } else {
+    data = (await supabase.from(t).select('*')).data;
+  }
+  return fromDb(data ?? []);
 };
 const crudCreate = async (t: string, b: unknown) =>
   fromDb((await supabase.from(t).insert(toDb(b)).select()).data?.[0] ?? null);
@@ -161,7 +176,7 @@ async function heatmap() {
 }
 
 async function documents(m: string, s: string[], b: unknown) {
-  if (m === 'GET') return fromDb((await supabase.from('documents').select('*').order('created_at', { ascending: false })).data);
+  if (m === 'GET') return fromDb((await supabase.from('documents').select('*').order('created_at', { ascending: false })).data ?? []);
   if (m === 'POST') {
     const f = b as FormData;
     const file = f.get('file') as File | null;
@@ -256,7 +271,7 @@ async function transfers(b: any) {
 }
 
 async function transactions(m: string, s: string[], b: any) {
-  if (m === 'GET') return fromDb((await supabase.from('transactions').select('*').order('date', { ascending: false })).data);
+  if (m === 'GET') return fromDb((await supabase.from('transactions').select('*').order('date', { ascending: false })).data ?? []);
   if (m === 'POST') {
     const db = toDb(b);
     const walletId = db.wallet_id as string;
@@ -355,7 +370,7 @@ async function reorder(b: any) {
 
 async function lessons(m: string, s: string[], b: any) {
   if (m === 'GET' && s[0]) {
-    return fromDb((await supabase.from('learning_lessons').select('*').eq('item_id', s[0]).order('sort_order', { ascending: true })).data);
+    return fromDb((await supabase.from('learning_lessons').select('*').eq('item_id', s[0]).order('sort_order', { ascending: true })).data ?? []);
   }
   if (m === 'POST') {
     const titles = (b.titles || []).map((t: any) => String(t).trim()).filter(Boolean);
@@ -392,7 +407,7 @@ async function syncItem(itemId: string) {
 
 async function recovery(m: string, s: string[], b: any) {
   if (s[0] === 'logs') {
-    if (m === 'GET') return fromDb((await supabase.from('recovery_logs').select('*').order('date', { ascending: false }).limit(365)).data);
+    if (m === 'GET') return fromDb((await supabase.from('recovery_logs').select('*').order('date', { ascending: false }).limit(365)).data ?? []);
     if (s[1] && m === 'PATCH') return fromDb((await supabase.from('recovery_logs').update(toDb(b)).eq('id', s[1]).select().single()).data);
     throw new Error('طريقة غير مدعومة');
   }
@@ -421,7 +436,7 @@ async function recovery(m: string, s: string[], b: any) {
 }
 
 async function hosoon(m: string, b: any) {
-  if (m === 'GET') return fromDb((await supabase.from('hosoon_days').select('*').order('date', { ascending: false })).data);
+  if (m === 'GET') return fromDb((await supabase.from('hosoon_days').select('*').order('date', { ascending: false })).data ?? []);
   if (m === 'POST') return fromDb((await supabase.from('hosoon_days').upsert({ date: b.date, done: b.done ?? true }, { onConflict: 'date' }).select().single()).data);
   throw new Error('طريقة غير مدعومة');
 }
