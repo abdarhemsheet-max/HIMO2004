@@ -57,7 +57,7 @@ const onForm =
 export default function QuranPage() {
   const today = todayStr();
   const [system, setSystem] = useState<System>('hosoon');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { confirm, ConfirmDialog } = useConfirm();
 
   // استرجاع آخر نظام مستخدم
@@ -180,11 +180,7 @@ export default function QuranPage() {
   };
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await Promise.all([loadHosoon(), loadShanqiti(), loadEntries()]);
-      setLoading(false);
-    })();
+    Promise.all([loadHosoon(), loadShanqiti(), loadEntries()]).then(() => setLoading(false));
   }, [loadHosoon, loadShanqiti, loadEntries]);
 
   const fortsDone = hosoonDay ? FORTS.filter((f) => hosoonDay[f.key]).length : 0;

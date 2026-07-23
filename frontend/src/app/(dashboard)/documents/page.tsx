@@ -49,7 +49,7 @@ export default function DocumentsPage() {
   const [modal, setModal] = useState<null | 'folder'>(null);
   const [viewer, setViewer] = useState<Document | null>(null);
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [staged, setStaged] = useState<StagedFile[] | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);

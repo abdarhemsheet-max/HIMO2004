@@ -50,7 +50,7 @@ export default function ProjectsPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [newType, setNewType] = useState<'finite' | 'ongoing'>('finite');
   const [archived, setArchived] = useState<ProjectTask[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { confirm, ConfirmDialog } = useConfirm();
   const [allTasks, setAllTasks] = useState<ProjectTask[]>(
     () => getCached<ProjectTask[]>('/api/crud/projectTasks') ?? []

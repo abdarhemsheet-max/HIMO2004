@@ -55,7 +55,7 @@ export default function LearningPage() {
   const [modal, setModal] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {

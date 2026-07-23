@@ -28,7 +28,7 @@ export default function RecoveryPage() {
   const [logs, setLogs] = useState<RecoveryLog[]>(() => getCached('/api/recovery/logs') ?? []);
   const [modal, setModal] = useState<'start' | null>(null);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<RecoveryLog | null>(null);
 
   const load = useCallback(async () => {

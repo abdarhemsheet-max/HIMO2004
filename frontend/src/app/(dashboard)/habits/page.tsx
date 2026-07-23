@@ -36,7 +36,7 @@ export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>(() => getCached<Habit[]>('/api/crud/habits') ?? []);
   const [focusList, setFocusList] = useState<WeeklyFocus[]>(() => getCached<WeeklyFocus[]>('/api/crud/weeklyFocus') ?? []);
   const [modal, setModal] = useState<null | 'task' | 'habit' | 'focus'>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {

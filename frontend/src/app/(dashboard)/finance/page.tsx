@@ -77,7 +77,7 @@ export default function FinancePage() {
   const [assets, setAssets] = useState<Asset[]>(() => getCached<Asset[]>('/api/crud/assets') ?? []);
   const [savings, setSavings] = useState<SavingsGoal[]>(() => getCached<SavingsGoal[]>('/api/crud/savings') ?? []);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);

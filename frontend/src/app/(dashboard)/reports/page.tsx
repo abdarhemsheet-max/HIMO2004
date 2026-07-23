@@ -30,7 +30,7 @@ export default function ReportsPage() {
   const [projects, setProjects] = useState<Project[]>(() => getCached<Project[]>('/api/crud/projects') ?? []);
   const [modal, setModal] = useState<null | 'entity' | 'report'>(null);
   const [creating, setCreating] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { confirm, ConfirmDialog } = useConfirm();
 
   const load = useCallback(async () => {

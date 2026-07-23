@@ -53,7 +53,7 @@ interface Summary {
 
 export default function HomePage() {
   const [s, setS] = useState<Summary | null>(() => getCached<Summary>('/api/summary'));
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { showBalances, togglePrivacy } = usePrivacyMode();
 
   const load = useCallback(async () => {
