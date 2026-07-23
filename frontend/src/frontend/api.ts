@@ -76,17 +76,9 @@ const crudList = async (t: string) => {
   } else if (t === 'projects') {
     data = (await supabase.from(t).select('*, tasks:project_tasks(*)')).data;
   } else if (t === 'habits') {
-    data = (await supabase.from(t).select('*')).data;
-    if (data) {
-      const { data: logs } = await supabase.from('habit_logs').select('habit_id, date');
-      if (logs) data = (data as any[]).map((h: any) => ({ ...h, logs: logs.filter((l: any) => l.habit_id === h.id) }));
-    }
+    data = (await supabase.from(t).select('*, logs:habit_logs(*)')).data;
   } else if (t === 'daily_tasks') {
-    data = (await supabase.from(t).select('*')).data;
-    if (data) {
-      const { data: logs } = await supabase.from('task_logs').select('task_id, date');
-      if (logs) data = (data as any[]).map((t: any) => ({ ...t, logs: logs.filter((l: any) => l.task_id === t.id) }));
-    }
+    data = (await supabase.from(t).select('*, logs:task_logs(*)')).data;
   } else {
     data = (await supabase.from(t).select('*')).data;
   }
